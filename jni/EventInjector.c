@@ -79,7 +79,7 @@ void debug(char *szFormat, ...)
 	//ensure that the formatted string is NULL-terminated
 	szBuffer[LASTCHAR] = '\0';
 
-	LOGD(szBuffer);
+//	LOGD(szBuffer);
 	//TextCallback(szBuffer);
 }
 
@@ -238,7 +238,7 @@ jint Java_net_pocketmagic_android_eventinjector_Events_intSendEvent(JNIEnv* env,
 	struct uinput_event event;
 	int len;
 
-	if (fd <= fileno(stderr)) return;
+	if (fd <= fileno(stderr)) return -1;
 
 	memset(&event, 0, sizeof(event));
 	event.type = type;
@@ -302,4 +302,12 @@ jint Java_net_pocketmagic_android_eventinjector_Events_getCode( JNIEnv* env,jobj
 
 jint Java_net_pocketmagic_android_eventinjector_Events_getValue( JNIEnv* env,jobject thiz ) {
 	return event.value;
+}
+
+jlong Java_net_pocketmagic_android_eventinjector_Events_getTimeMajor(JNIEnv* env,jobject thiz) {
+	return event.time.tv_sec;
+}
+
+jlong Java_net_pocketmagic_android_eventinjector_Events_getTimeMinor(JNIEnv* env,jobject thiz) {
+	return event.time.tv_usec;
 }

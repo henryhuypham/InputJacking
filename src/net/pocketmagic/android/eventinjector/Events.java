@@ -38,6 +38,14 @@ public class Events {
 		public int getSuccessfulPollingValue() {
 			return getValue();
 		}
+		
+		public long getSuccessfulTimeMajor() {
+			return getTimeMajor();
+		}
+		
+		public long getSuccessfulTimeMinor() {
+			return getTimeMinor();
+		}
 
 		public boolean getOpen() {
 			return m_bOpen;
@@ -200,6 +208,10 @@ public class Events {
 	private native static int getCode();
 
 	private native static int getValue();
+	
+	private native static long getTimeMajor();
+	
+	private native static long getTimeMinor();
 
 	// injector:
 	private native static int intSendEvent(int devid, int type, int code, int value);

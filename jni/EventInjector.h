@@ -23,6 +23,7 @@
  */
 
 #include <linux/input.h>
+#include "const_def.h"
 
 struct uinput_event {
 	struct timeval time;

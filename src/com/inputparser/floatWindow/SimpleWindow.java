@@ -39,7 +39,7 @@ public class SimpleWindow extends StandOutWindow {
 		mVIew.findViewById(R.id.startCapture).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				agent.startMonitor();
+				agent.startMonitorWithDelay();
 			}
 		});
 		mVIew.findViewById(R.id.stopCapture).setOnClickListener(new OnClickListener() {
