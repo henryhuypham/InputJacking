@@ -10,6 +10,7 @@ import net.pocketmagic.android.eventinjector.Events;
 import net.pocketmagic.android.eventinjector.Events.InputDevice;
 
 public class RecordAgent {
+	private static final int	DEVICE_NUM		= 3;
 	private static final long	REPLICATE_DELAY	= 2000;
 	private Events				events;
 	private String				logTag;
@@ -186,7 +187,7 @@ public class RecordAgent {
 	}
 
 	private void rawTouchAt(int type, int code, int value) {
-		InputDevice device = events.m_Devs.get(3);
+		InputDevice device = events.m_Devs.get(DEVICE_NUM);
 		events.rawSendEvent(device.getId(), type, code, value);
 
 		String line = type + " " + code + " " + value;
