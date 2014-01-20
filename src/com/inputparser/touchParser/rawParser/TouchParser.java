@@ -1,4 +1,4 @@
-package com.inputparser.touchParser;
+package com.inputparser.touchParser.rawParser;
 
 import java.util.ArrayList;
 import java.util.List;

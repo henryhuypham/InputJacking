@@ -13,7 +13,7 @@ import com.inputparser.R;
 import com.inputparser.touchEvent.BaseTouchEvent;
 import com.inputparser.touchEvent.FingerTouch;
 import com.inputparser.touchEvent.RawEvent;
-import com.inputparser.touchParser.TouchParser;
+import com.inputparser.touchParser.rawParser.TouchParser;
 
 public class MainActivity extends Activity {
 	private Events			events		= new Events();

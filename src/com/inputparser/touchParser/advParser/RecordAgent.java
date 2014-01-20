@@ -1,17 +1,16 @@
-package com.inputparser.touchParser;
+package com.inputparser.touchParser.advParser;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import com.inputparser.touchEvent.BaseTouchEvent;
-import com.inputparser.touchEvent.FingerTouch;
-import com.inputparser.touchEvent.RawEvent;
-import android.text.format.Time;
-import android.util.Log;
 import net.pocketmagic.android.eventinjector.Events;
 import net.pocketmagic.android.eventinjector.Events.InputDevice;
+import android.os.AsyncTask;
+import android.util.Log;
+import com.inputparser.touchEvent.RawEvent;
 
 public class RecordAgent {
 	private static final int	DEVICE_NUM		= 3;
-	private static final long	REPLICATE_DELAY	= 2000;
+	private static final long	REPLICATE_DELAY	= 500;
 	private Events				events;
 	private String				logTag;
 	private AtomicBoolean		isMonitorOn;
@@ -47,40 +46,6 @@ public class RecordAgent {
 		Log.d(logTag, "Scanning for input dev files.");
 		int res = events.Init();
 		Log.d(logTag, "Event files:" + res);
-	}
-
-	public void startMonitor() {
-		isMonitorOn.set(true);
-		parser.reset();
-		final Time now = new Time();
-		now.setToNow();
-
-		Thread monitorThread = new Thread(new Runnable() {
-			public void run() {
-				while (isMonitorOn.get()) {
-					long lastTime = now.toMillis(true);
-					for (InputDevice idev : events.m_Devs) {
-						if (idev.getOpen() && (0 == idev.getPollingEvent())) {
-							final int type = idev.getSuccessfulPollingType();
-							final int code = idev.getSuccessfulPollingCode();
-							final int value = idev.getSuccessfulPollingValue();
-							final String line = idev.getName() + ":" + type + " " + code + " " + value + " "
-									+ idev.getSuccessfulTimeMajor() + " " + idev.getSuccessfulTimeMinor();
-							Log.d(logTag, "Event:" + line);
-
-							now.setToNow();
-							long currentTime = now.toMillis(true);
-							rawRecordTouchEvent(type, code, value, currentTime - lastTime);
-							Log.d(logTag, "Event time delay: " + (currentTime - lastTime));
-							lastTime = currentTime;
-						}
-
-					}
-				}
-				Log.d(logTag, "Stopped!!!!!");
-			}
-		});
-		monitorThread.start();
 	}
 
 	public void startMonitorWithDelay() {
@@ -136,39 +101,6 @@ public class RecordAgent {
 	}
 
 	/*
-	 * Record & parsing
-	 */
-	public void replicateCapture() {
-		delay(REPLICATE_DELAY);
-		for (BaseTouchEvent event : parser.getTouchRecords()) {
-			switch (event.getType()) {
-			case FINGER_DOWN:
-				Log.d(logTag, "Finger down");
-				break;
-			case FINGER_UP:
-				Log.d(logTag, "Finger up");
-				break;
-			case FINGER_TOUCH:
-				FingerTouch touch = (FingerTouch) event;
-				Log.d(logTag, "Finger touch: " + touch.getX() + " - " + touch.getY());
-				delay(100);
-				touchAt(touch.getX(), touch.getY());
-				break;
-			default:
-				break;
-			}
-		}
-	}
-
-	private void recordTouchEvent(int type, int code, int value) {
-		parser.parse(type, code, value);
-	}
-
-	private void touchAt(int x, int y) {
-		events.m_Devs.get(3).SendTouchDownAbs(x, y);
-	}
-
-	/*
 	 * Raw Record
 	 */
 	private void rawRecordTouchEvent(int type, int code, int value, long delay) {
@@ -176,14 +108,32 @@ public class RecordAgent {
 	}
 
 	public void rawReplicateCapture() {
-		Log.d(logTag, "Event COunt: " + parser.getRawRecords().size());
 		delay(REPLICATE_DELAY);
-		for (RawEvent event : parser.getRawRecords()) {
-			delay(event.delay);
-			Log.d(logTag, "-- Delay: " + event.delay);
-			rawTouchAt(event.type, event.code, event.value);
-		}
-		Log.d(logTag, "DONE!!!!!!");
+		spawEvent(0);
+	}
+
+	private void spawEvent(final int index) {
+		final EventChunk chunk = parser.getRawRecords().get(index);
+		new AsyncTask<Void, Void, Void>() {
+			@Override
+			protected Void doInBackground(Void... params) {
+				List<RawEvent> records = chunk.getRawRecords();
+				for (RawEvent event : records) {
+					delay(event.delay);
+					Log.d(logTag, "-- Delay: " + event.delay);
+					rawTouchAt(event.type, event.code, event.value);
+				}
+				return null;
+			}
+
+			@Override
+			protected void onPostExecute(Void result) {
+				if (index < parser.getRawRecords().size() - 1) {
+					Log.d(logTag, "-- Spawn new event " + (index + 1));
+					spawEvent(index + 1);
+				}
+			}
+		}.execute();
 	}
 
 	private void rawTouchAt(int type, int code, int value) {

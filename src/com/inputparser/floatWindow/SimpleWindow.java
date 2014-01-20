@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 import com.inputparser.R;
-import com.inputparser.touchParser.RecordAgent;
+import com.inputparser.touchParser.advParser.RecordAgent;
 
 public class SimpleWindow extends StandOutWindow {
 	private RecordAgent	agent;
