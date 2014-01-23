@@ -4,6 +4,7 @@ import wei.mark.standout.StandOutWindow;
 import wei.mark.standout.constants.StandOutFlags;
 import wei.mark.standout.ui.Window;
 import android.content.Intent;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -40,6 +41,14 @@ public class SimpleWindow extends StandOutWindow {
 			@Override
 			public void onClick(View v) {
 				agent.startMonitorWithDelay();
+				agent.disableRecording();
+				
+				new Handler().postDelayed(new Runnable() {
+					@Override
+					public void run() {
+						agent.enableRecording();
+					}
+				}, 500);
 			}
 		});
 		mVIew.findViewById(R.id.stopCapture).setOnClickListener(new OnClickListener() {

@@ -69,6 +69,8 @@ public class RecordAgent {
 							long dt = dMt * 1000 + dmt / 1000;
 							dt = (dt >= 1 ? dt : 1);
 
+							if (dt >= 200)
+								Log.d(logTag, "---------------------------");
 							String line = idev.getName() + ":" + type + " " + code + " " + value + " " + timeMajor + " " + timeMinor
 									+ " - " + dt;
 							Log.d(logTag, "Event:" + line);
@@ -81,6 +83,7 @@ public class RecordAgent {
 
 					}
 				}
+				packageRecord();
 				Log.d(logTag, "Stopped!!!!!");
 			}
 		});
@@ -89,6 +92,19 @@ public class RecordAgent {
 
 	public void stopMonitor() {
 		isMonitorOn.set(false);
+		parser.disableRecording();
+	}
+
+	public void resetParser() {
+		parser.reset();
+	}
+
+	public void enableRecording() {
+		parser.enableRecording();
+	}
+
+	public void disableRecording() {
+		parser.disableRecording();
 	}
 
 	private void delay(long delay) {
@@ -100,11 +116,12 @@ public class RecordAgent {
 		}
 	}
 
-	/*
-	 * Raw Record
-	 */
 	private void rawRecordTouchEvent(int type, int code, int value, long delay) {
 		parser.rawRecord(type, code, value, delay);
+	}
+
+	private void packageRecord() {
+		parser.packageRecord();
 	}
 
 	public void rawReplicateCapture() {
@@ -118,9 +135,10 @@ public class RecordAgent {
 			@Override
 			protected Void doInBackground(Void... params) {
 				List<RawEvent> records = chunk.getRawRecords();
+				Log.d(logTag, "-- CHUNK " + index);
 				for (RawEvent event : records) {
 					delay(event.delay);
-					Log.d(logTag, "-- Delay: " + event.delay);
+					// Log.d(logTag, "-- Delay: " + event.delay);
 					rawTouchAt(event.type, event.code, event.value);
 				}
 				return null;

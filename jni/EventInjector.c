@@ -247,6 +247,8 @@ jint Java_net_pocketmagic_android_eventinjector_Events_intSendEvent(JNIEnv* env,
 
 	len = write(fd, &event, sizeof(event));
 	debug("SendEvent done:%d",len);
+
+	return 0;
 } 
 
 
