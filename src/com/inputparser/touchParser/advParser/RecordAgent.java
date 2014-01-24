@@ -1,26 +1,35 @@
 package com.inputparser.touchParser.advParser;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.pocketmagic.android.eventinjector.Events;
 import net.pocketmagic.android.eventinjector.Events.InputDevice;
 import android.os.AsyncTask;
 import android.util.Log;
+import com.inputparser.actionHook.ControlHook;
 import com.inputparser.touchEvent.RawEvent;
 
 public class RecordAgent {
-	private static final int	DEVICE_NUM		= 3;
 	private static final long	REPLICATE_DELAY	= 500;
 	private Events				events;
 	private String				logTag;
 	private AtomicBoolean		isMonitorOn;
 	private TouchParser			parser;
+	private ControlHook			host;
+	private Set<Integer>		blackList;
+	protected String[]			blackListDevName;
 
-	public RecordAgent() {
+	public RecordAgent(ControlHook host, String... blkList) {
 		events = new Events();
 		logTag = "InputParser";
 		isMonitorOn = new AtomicBoolean();
 		parser = new TouchParser();
+
+		this.host = host;
+		this.blackList = new HashSet<Integer>();
+		this.blackListDevName = blkList;
 
 		init();
 	}
@@ -28,6 +37,15 @@ public class RecordAgent {
 	private void init() {
 		scanDevices();
 		openAllDevices();
+
+		for (int i = 0; i < events.m_Devs.size(); i++) {
+			for (String blk : blackListDevName) {
+				if (events.m_Devs.get(i).getPath().contains(blk)) {
+					blackList.add(i);
+					break;
+				}
+			}
+		}
 	}
 
 	private void openAllDevices() {
@@ -49,14 +67,23 @@ public class RecordAgent {
 	}
 
 	public void startMonitorWithDelay() {
+		host.onPreStart();
+
 		isMonitorOn.set(true);
 		parser.reset();
 
 		Thread monitorThread = new Thread(new Runnable() {
 			public void run() {
-				long oldTimeMajor = -1, oldTimeMinor = -1;
+				TimeGap[] timer = new TimeGap[events.m_Devs.size()];
+				for (int i = 0; i < timer.length; timer[i] = new TimeGap(), i++);
+
 				while (isMonitorOn.get()) {
-					for (InputDevice idev : events.m_Devs) {
+					for (int i = 0; i < events.m_Devs.size(); i++) {
+						if (blackList.contains(i))
+							continue;
+
+						InputDevice idev = events.m_Devs.get(i);
+
 						if (idev.getOpen() && (0 == idev.getPollingEvent())) {
 							int type = idev.getSuccessfulPollingType();
 							int code = idev.getSuccessfulPollingCode();
@@ -64,10 +91,7 @@ public class RecordAgent {
 							long timeMajor = idev.getSuccessfulTimeMajor();
 							long timeMinor = idev.getSuccessfulTimeMinor();
 
-							long dMt = oldTimeMajor == -1 ? 0 : timeMajor - oldTimeMajor;
-							long dmt = oldTimeMinor == -1 ? 0 : timeMinor - oldTimeMinor;
-							long dt = dMt * 1000 + dmt / 1000;
-							dt = (dt >= 1 ? dt : 1);
+							long dt = timer[i].getTimeDiff(timeMajor, timeMinor);
 
 							if (dt >= 200)
 								Log.d(logTag, "---------------------------");
@@ -75,24 +99,26 @@ public class RecordAgent {
 									+ " - " + dt;
 							Log.d(logTag, "Event:" + line);
 
-							oldTimeMajor = timeMajor;
-							oldTimeMinor = timeMinor;
-
-							rawRecordTouchEvent(type, code, value, dt);
+							rawRecordTouchEvent(i, type, code, value, dt);
 						}
-
 					}
 				}
 				packageRecord();
 				Log.d(logTag, "Stopped!!!!!");
+
+				host.onPostStart();
 			}
 		});
 		monitorThread.start();
 	}
 
 	public void stopMonitor() {
+		host.onPreStop();
+
 		isMonitorOn.set(false);
 		parser.disableRecording();
+
+		host.onPostStop();
 	}
 
 	public void resetParser() {
@@ -116,8 +142,8 @@ public class RecordAgent {
 		}
 	}
 
-	private void rawRecordTouchEvent(int type, int code, int value, long delay) {
-		parser.rawRecord(type, code, value, delay);
+	private void rawRecordTouchEvent(int devNum, int type, int code, int value, long delay) {
+		parser.rawRecord(devNum, type, code, value, delay);
 	}
 
 	private void packageRecord() {
@@ -133,13 +159,20 @@ public class RecordAgent {
 		final EventChunk chunk = parser.getRawRecords().get(index);
 		new AsyncTask<Void, Void, Void>() {
 			@Override
+			protected void onPreExecute() {
+				if (index == 0) {
+					host.onPreReplicate();
+				}
+			}
+
+			@Override
 			protected Void doInBackground(Void... params) {
 				List<RawEvent> records = chunk.getRawRecords();
 				Log.d(logTag, "-- CHUNK " + index);
 				for (RawEvent event : records) {
 					delay(event.delay);
 					// Log.d(logTag, "-- Delay: " + event.delay);
-					rawTouchAt(event.type, event.code, event.value);
+					rawEventReplay(event);
 				}
 				return null;
 			}
@@ -150,15 +183,18 @@ public class RecordAgent {
 					Log.d(logTag, "-- Spawn new event " + (index + 1));
 					spawEvent(index + 1);
 				}
+				else {
+					host.onPostReplicate();
+				}
 			}
 		}.execute();
 	}
 
-	private void rawTouchAt(int type, int code, int value) {
-		InputDevice device = events.m_Devs.get(DEVICE_NUM);
-		events.rawSendEvent(device.getId(), type, code, value);
+	private void rawEventReplay(RawEvent event) {
+		InputDevice device = events.m_Devs.get(event.devNum);
+		events.rawSendEvent(device.getId(), event.type, event.code, event.value);
 
-		String line = type + " " + code + " " + value;
+		String line = event.type + " " + event.code + " " + event.value;
 		Log.d(logTag, line);
 	}
 }

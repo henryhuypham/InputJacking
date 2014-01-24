@@ -1,10 +1,11 @@
 package com.inputparser.touchEvent;
 
 public class RawEvent {
-	public int	type, code, value;
+	public int	devNum, type, code, value;
 	public long	delay;
 
-	public RawEvent(int t, int c, int v, long d) {
+	public RawEvent(int n, int t, int c, int v, long d) {
+		devNum = n;
 		type = t;
 		code = c;
 		value = v;

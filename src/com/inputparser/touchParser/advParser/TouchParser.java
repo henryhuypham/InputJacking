@@ -26,14 +26,14 @@ public class TouchParser {
 		rawRecords.clear();
 	}
 
-	public void rawRecord(int type, int code, int value, long delay) {
+	public void rawRecord(int devNum, int type, int code, int value, long delay) {
 		if (recording) {
 			if (delay >= CHUNK_THRESHOLD) {
 				rawRecords.add(new EventChunk(eventBuffer));
 				eventBuffer = new ArrayList<RawEvent>();
 				Log.d("inputParser", "CHUNK " + rawRecords.size());
 			}
-			eventBuffer.add(new RawEvent(type, code, value, delay));
+			eventBuffer.add(new RawEvent(devNum, type, code, value, delay));
 		}
 	}
 

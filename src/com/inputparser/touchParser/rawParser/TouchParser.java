@@ -9,6 +9,7 @@ import com.inputparser.touchEvent.FingerUp;
 import com.inputparser.touchEvent.RawEvent;
 
 public class TouchParser {
+	private static final int		DEVICE_NUM					= 3;
 	private static final int		UP_DOWN_TYPE_CODEX			= 1;
 	private static final int		UP_DOWN_CODE_CODEX			= 330;
 	private static final int		UP_DOWN_VALUE_DOWN_CODEX	= 1;
@@ -34,7 +35,7 @@ public class TouchParser {
 	public List<BaseTouchEvent> getTouchRecords() {
 		return touchRecords;
 	}
-	
+
 	public List<RawEvent> getRawRecords() {
 		return rawRecords;
 	}
@@ -46,45 +47,45 @@ public class TouchParser {
 
 	public void parse(int type, int code, int value) {
 		switch (type) {
-			case UP_DOWN_TYPE_CODEX:
-				if (code == UP_DOWN_CODE_CODEX) {
-					if (value == UP_DOWN_VALUE_DOWN_CODEX) {
-						touchRecords.add(new FingerDown());
-					}
-					else if (value == UP_DOWN_VALUE_UP_CODEX) {
-						touchRecords.add(new FingerUp());
-					}
+		case UP_DOWN_TYPE_CODEX:
+			if (code == UP_DOWN_CODE_CODEX) {
+				if (value == UP_DOWN_VALUE_DOWN_CODEX) {
+					touchRecords.add(new FingerDown());
+				}
+				else if (value == UP_DOWN_VALUE_UP_CODEX) {
+					touchRecords.add(new FingerUp());
+				}
+			}
+			break;
+		case TOUCH_TYPE_CODEX:
+			switch (code) {
+			case TOUCH_X_CODE_CODEX:
+				if (waitingForX) {
+					touchRecords.add(new FingerTouch(value, oldTouchPos));
+					waitingForX = false;
+				}
+				else {
+					oldTouchPos = value;
+					waitingForY = true;
 				}
 				break;
-			case TOUCH_TYPE_CODEX:
-				switch (code) {
-					case TOUCH_X_CODE_CODEX:
-						if (waitingForX) {
-							touchRecords.add(new FingerTouch(value, oldTouchPos));
-							waitingForX = false;
-						}
-						else {
-							oldTouchPos = value;
-							waitingForY = true;
-						}
-						break;
-					case TOUCH_Y_CODE_CODEX:
-						if (waitingForY) {
-							touchRecords.add(new FingerTouch(oldTouchPos, value));
-							waitingForY = false;
-						}
-						else {
-							oldTouchPos = value;
-							waitingForX = true;
-						}
-						break;
+			case TOUCH_Y_CODE_CODEX:
+				if (waitingForY) {
+					touchRecords.add(new FingerTouch(oldTouchPos, value));
+					waitingForY = false;
+				}
+				else {
+					oldTouchPos = value;
+					waitingForX = true;
 				}
 				break;
+			}
+			break;
 		}
 	}
-	
+
 	public void rawRecord(int type, int code, int value, long delay) {
-		rawRecords.add(new RawEvent(type, code, value, delay));
+		rawRecords.add(new RawEvent(DEVICE_NUM, type, code, value, delay));
 	}
 
 }
