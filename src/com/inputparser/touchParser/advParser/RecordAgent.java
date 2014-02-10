@@ -74,8 +74,7 @@ public class RecordAgent {
 
 		Thread monitorThread = new Thread(new Runnable() {
 			public void run() {
-				TimeGap[] timer = new TimeGap[events.m_Devs.size()];
-				for (int i = 0; i < timer.length; timer[i] = new TimeGap(), i++);
+				long oldTimeMajor = -1, oldTimeMinor = -1;
 
 				while (isMonitorOn.get()) {
 					for (int i = 0; i < events.m_Devs.size(); i++) {
@@ -91,13 +90,19 @@ public class RecordAgent {
 							long timeMajor = idev.getSuccessfulTimeMajor();
 							long timeMinor = idev.getSuccessfulTimeMinor();
 
-							long dt = timer[i].getTimeDiff(timeMajor, timeMinor);
-
+							long dMt = oldTimeMajor == -1 ? 0 : timeMajor - oldTimeMajor;
+							long dmt = oldTimeMinor == -1 ? 0 : timeMinor - oldTimeMinor;
+							long dt = dMt * 1000 + dmt / 1000;
+							dt = (dt >= 1 ? dt : 1);
+							
 							if (dt >= 200)
 								Log.d(logTag, "---------------------------");
 							String line = idev.getName() + ":" + type + " " + code + " " + value + " " + timeMajor + " " + timeMinor
 									+ " - " + dt;
 							Log.d(logTag, "Event:" + line);
+							
+							oldTimeMajor = timeMajor;
+							oldTimeMinor = timeMinor;
 
 							rawRecordTouchEvent(i, type, code, value, dt);
 						}
