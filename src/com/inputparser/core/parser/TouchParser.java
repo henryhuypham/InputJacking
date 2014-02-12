@@ -1,9 +1,9 @@
-package com.inputparser.touchParser.advParser;
+package com.inputparser.core.parser;
 
 import java.util.ArrayList;
 import java.util.List;
 import android.util.Log;
-import com.inputparser.touchEvent.RawEvent;
+import com.inputparser.core.event.RawEvent;
 
 public class TouchParser {
 	private List<EventChunk>	rawRecords;

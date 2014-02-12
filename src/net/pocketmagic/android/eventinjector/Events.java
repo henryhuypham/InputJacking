@@ -1,7 +1,7 @@
 package net.pocketmagic.android.eventinjector;
 
 import java.util.ArrayList;
-import com.inputparser.main.Shell;
+import com.inputparser.util.Shell;
 import android.util.Log;
 
 public class Events {

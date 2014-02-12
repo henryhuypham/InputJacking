@@ -1,10 +1,9 @@
-package com.inputparser.floatWindow;
+package com.inputparser.main;
 
 import wei.mark.standout.StandOutWindow;
 import wei.mark.standout.constants.StandOutFlags;
 import wei.mark.standout.ui.Window;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,15 +11,13 @@ import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 import com.inputparser.R;
-import com.inputparser.actionHook.ControlHook;
-import com.inputparser.touchParser.advParser.RecordAgent;
-import com.inputparser.touchParser.phoneSpecific.FakeS4;
-import com.inputparser.touchParser.phoneSpecific.HtcOneAgent;
+import com.inputparser.core.agent.deviceAgent.FakeS4;
+import com.inputparser.core.hook.ControlHook;
+import com.inputparser.core.parser.RecordAgent;
 
 public class SimpleWindow extends StandOutWindow implements ControlHook {
 	private RecordAgent	agent;
 	private View		mVIew;
-	private int			myId;
 
 	@Override
 	public String getAppName() {
@@ -37,9 +34,9 @@ public class SimpleWindow extends StandOutWindow implements ControlHook {
 		// create a new layout from body.xml
 		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 		mVIew = inflater.inflate(R.layout.simple, frame, true);
-		myId = id;
 
-		agent = new FakeS4(this);
+		agent = new FakeS4();
+		agent.setControlHook(this);
 		setButtonFunction();
 	}
 

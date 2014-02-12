@@ -1,4 +1,4 @@
-package com.inputparser.floatWindow;
+package com.inputparser.main;
 
 import wei.mark.standout.StandOutWindow;
 import android.app.Activity;

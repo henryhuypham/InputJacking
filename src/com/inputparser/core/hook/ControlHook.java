@@ -1,4 +1,4 @@
-package com.inputparser.actionHook;
+package com.inputparser.core.hook;
 
 public interface ControlHook {
 	void onPreStart();

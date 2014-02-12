@@ -1,4 +1,4 @@
-package com.inputparser.touchParser.advParser;
+package com.inputparser.core.parser;
 
 import java.util.HashSet;
 import java.util.List;
@@ -8,8 +8,8 @@ import net.pocketmagic.android.eventinjector.Events;
 import net.pocketmagic.android.eventinjector.Events.InputDevice;
 import android.os.AsyncTask;
 import android.util.Log;
-import com.inputparser.actionHook.ControlHook;
-import com.inputparser.touchEvent.RawEvent;
+import com.inputparser.core.event.RawEvent;
+import com.inputparser.core.hook.ControlHook;
 
 public class RecordAgent {
 	private static final long	REPLICATE_DELAY	= 500;
@@ -21,13 +21,12 @@ public class RecordAgent {
 	private Set<Integer>		blackList;
 	protected String[]			blackListDevName;
 
-	public RecordAgent(ControlHook host, String... blkList) {
+	public RecordAgent(String... blkList) {
 		events = new Events();
 		logTag = "InputParser";
 		isMonitorOn = new AtomicBoolean();
 		parser = new TouchParser();
 
-		this.host = host;
 		this.blackList = new HashSet<Integer>();
 		this.blackListDevName = blkList;
 
@@ -64,6 +63,10 @@ public class RecordAgent {
 		Log.d(logTag, "Scanning for input dev files.");
 		int res = events.Init();
 		Log.d(logTag, "Event files:" + res);
+	}
+	
+	public void setControlHook(ControlHook host) {
+		this.host = host;
 	}
 
 	public void startMonitorWithDelay() {

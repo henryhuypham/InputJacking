@@ -1,4 +1,4 @@
-package com.inputparser.touchEvent;
+package com.inputparser.core.event;
 
 public class RawEvent {
 	public int	devNum, type, code, value;

@@ -16,10 +16,10 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@android:style/Theme.NoDisplay" >
-        <service android:name="com.inputparser.floatWindow.SimpleWindow" >
+        <service android:name="com.inputparser.main.SimpleWindow" >
         </service>
 
-        <activity android:name="com.inputparser.floatWindow.FloatActivity" >
+        <activity android:name="com.inputparser.main.FloatActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

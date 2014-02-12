@@ -1,4 +1,4 @@
-package com.inputparser.main;
+package com.inputparser.util;
 
 import android.util.Log;
 import java.io.*;

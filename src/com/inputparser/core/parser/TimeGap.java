@@ -1,4 +1,4 @@
-package com.inputparser.touchParser.advParser;
+package com.inputparser.core.parser;
 
 public class TimeGap {
 	private long	timeMajor, timeMinor;
